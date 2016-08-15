@@ -5671,7 +5671,7 @@ var Web3 = require("web3");
       }
     ],
     "unlinked_binary": "0x606060405260358060106000396000f36503050000000050606060405260e060020a600035046396e4ee3d81146024575b6007565b602435600435026060908152602090f3",
-    "updated_at": 1470983371792,
+    "updated_at": 1471267130680,
     "links": {},
     "address": "0xbcfbbe505bd52679f4d836469b7237fb31588ef2"
   }
@@ -6220,9 +6220,9 @@ var Web3 = require("web3");
       }
     ],
     "unlinked_binary": "0x606060405260008054600160a060020a031916331790556101a0806100246000396000f3606060405236156100565760e060020a600035046302e99e1681146100585780631fc5a382146100b757806335a8076b146100eb57806343e2e504146101215780635b0cfcd8146101335780635e5c06e21461015b575b005b6002604435046003908155600160a060020a0360048035821660009081526020919091526040808220428082558554600192830180549091019055602435909416835291209182558254910180549091019055545b6060908152602090f35b61017a6004356024356000600160a060020a0383168183606082818181858883f19350505050156101995750600192915050565b6001805473ffffffffffffffffffffffffffffffffffffffff199081166004351790915560028054909116602435179055610056565b600160a060020a0360043516316100ad565b61005660005433600160a060020a039081169116141561019e57600054600160a060020a0316ff5b61018c6004356004602052600090815260409020805460019091015482565b60408051918252519081900360200190f35b6060918252608052604090f35b610002565b56",
-    "updated_at": 1470983371800,
+    "updated_at": 1471267130675,
     "links": {},
-    "address": "0xec4a4ed5338d6bddad72689cdb8609667227ffc7"
+    "address": "0xe4f1ebbd95de1afe1c21c66ff1c5ff424465db74"
   }
 };
 
@@ -6710,8 +6710,8 @@ var Web3 = require("web3");
       }
     ],
     "unlinked_binary": "0x606060405260008054600160a060020a0319163317905560f7806100236000396000f3606060405260e060020a60003504630900f01081146038578063445df0ac1460b05780638da5cb5b1460b8578063fdacd5761460c9575b005b60366004356000805433600160a060020a039081169116141560ac576001547ffdacd5760000000000000000000000000000000000000000000000000000000060609081526064919091528291600160a060020a0383169163fdacd5769160849160248183876161da5a03f1156002575050505b5050565b60ed60015481565b60ed600054600160a060020a031681565b603660043560005433600160a060020a039081169116141560ea5760018190555b50565b6060908152602090f3",
-    "updated_at": 1470983371808,
-    "address": "0x3a356484266166dfb0f43332758c3baa3fb5c115",
+    "updated_at": 1471267130686,
+    "address": "0x4b297f45e827d2222d5226c82f21335cb6227d42",
     "links": {}
   }
 };
@@ -7263,11 +7263,11 @@ var Web3 = require("web3");
       }
     ],
     "unlinked_binary": "0x606060405260008054600160a060020a031916331790556101d7806100246000396000f3606060405236156100565760e060020a600035046302e99e16811461005857806335a8076b146100b757806343e2e504146100ed5780635b0cfcd81461010d5780635e5c06e214610135578063fc4db64e14610155575b005b6100fb600435602435604435600281046003908155600160a060020a03808516600090815260046020526040808220428082558554600192830180549091019055938716835291209182558254910180549091019055545b9392505050565b6001805473ffffffffffffffffffffffffffffffffffffffff199081166004351790915560028054909116602435179055610056565b600160a060020a0360043516315b60408051918252519081900360200190f35b61005660005433600160a060020a03908116911614156101d057600054600160a060020a0316ff5b6101af600435600460205260009081526040902080546001919091015482565b6101bc6004356024356044356000600160a060020a0384168183606082818181858883f19350505050156101d257604051600160a060020a038416908290849082818181858883f19350505050156101d2575060016100b0565b6060918252608052604090f35b604080519115158252519081900360200190f35b565b61000256",
-    "updated_at": 1470983371818,
+    "updated_at": 1471267130696,
     "links": {
       "ConvertLib": "0xe02b1518e75b7cd5629c01d0fe3d4f183da53a7f"
     },
-    "address": "0x6501824acaaeda4a62b2fd6b4eb979c339268897"
+    "address": "0x58920b50f21110bad23e56717d66c8f6d56145c1"
   }
 };
 
@@ -44047,7 +44047,7 @@ if (typeof web3 !== 'undefined') {
 
                                                               
 
-[ConvertLib,FiftyFifty,Migrations,SmallProject].forEach(function(contract) {         
+[ConvertLib,Migrations,SmallProject,FiftyFifty].forEach(function(contract) {         
 
   contract.setProvider(window.web3.currentProvider);          
 
@@ -44081,6 +44081,35 @@ if (typeof web3 !== 'undefined') {
   // set the provider you want from Web3.providers
   web3 = new Web3(new Web3.providers.HttpProvider(rpc_url));
 }
+
+// week 5: extend web3
+web3.eth.getTransactionReceiptMined = function (txn, interval) {
+    console.log("getTransactionReceiptMined");
+    var transactionReceiptAsync;
+    interval |= 500;
+    transactionReceiptAsync = function(txn, resolve, reject) {
+      try {
+        var receipt = web3.eth.getTransactionReceipt(txn);
+        if (receipt == null) {
+            setTimeout(function () {
+              transactionReceiptAsync(txn, resolve, reject);
+            }, interval);
+        } else {
+          console.log("Transaction receipt confirmed, sending funds to target accounts...");
+          setBalances();
+          document.getElementById("status").innerHTML = "Transaction receipt confirmed, sending funds to target accounts...";
+          resolve(receipt);
+        }
+      } catch(e) {
+          reject(e);
+      }
+    };
+
+    return new Promise(function (resolve, reject) {
+      transactionReceiptAsync(txn, resolve, reject);
+      sendSplitAmount();
+    });
+};
 
 // get the deployed contract
 var this_contract = SmallProject.deployed();
@@ -44136,10 +44165,6 @@ function setBalances() {
   }
 }
 
-function testInterval(data) {
-  console.log("testInterval: " + data);
-}
-
 // send funds to the contract
 function sendAmountToContract() {
   send_amount = document.getElementById("send_amount").value;
@@ -44147,14 +44172,20 @@ function sendAmountToContract() {
   if (send_amount != "") {
     var txn = web3.eth.sendTransaction({ from: web3.eth.coinbase, to: contract_addr, value: send_amount });
     console.log("sendAmountToContract txn: " + txn);
-    document.getElementById("status").innerHTML = "Waiting for transaction receipt..."; 
-    checkReceiptInterval = setInterval(function() { getTransactionReceipt(txn) }, 5000);
+    document.getElementById("status").innerHTML = "Waiting for transaction receipt...";
+
+    // week 5: extend web3 - see line 28-55 for function defenition
+    web3.eth.getTransactionReceiptMined(txn, 500);
+
+    // week 3: my own implementation to check transaction receipt - disabled and replaced with solution from week 5
+    //checkReceiptInterval = setInterval(function() { getTransactionReceipt(txn) }, 5000);
   }
   else {
     alert("You need to enter an amount to send in the ");
   }
 }
 
+// week 3: my own implementation to check transaction receipt
 function getTransactionReceipt(txn) {
   if (web3.eth.getTransactionReceipt(txn) == null) {
     console.log("Waiting for transaction receipt...");

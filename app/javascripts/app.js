@@ -25,6 +25,35 @@ if (typeof web3 !== 'undefined') {
   web3 = new Web3(new Web3.providers.HttpProvider(rpc_url));
 }
 
+// week 5: extend web3
+web3.eth.getTransactionReceiptMined = function (txn, interval) {
+    console.log("getTransactionReceiptMined");
+    var transactionReceiptAsync;
+    interval |= 500;
+    transactionReceiptAsync = function(txn, resolve, reject) {
+      try {
+        var receipt = web3.eth.getTransactionReceipt(txn);
+        if (receipt == null) {
+            setTimeout(function () {
+              transactionReceiptAsync(txn, resolve, reject);
+            }, interval);
+        } else {
+          console.log("Transaction receipt confirmed, sending funds to target accounts...");
+          setBalances();
+          document.getElementById("status").innerHTML = "Transaction receipt confirmed, sending funds to target accounts...";
+          resolve(receipt);
+        }
+      } catch(e) {
+          reject(e);
+      }
+    };
+
+    return new Promise(function (resolve, reject) {
+      transactionReceiptAsync(txn, resolve, reject);
+      sendSplitAmount();
+    });
+};
+
 // get the deployed contract
 var this_contract = SmallProject.deployed();
 var contract_addr = this_contract.address;
@@ -79,10 +108,6 @@ function setBalances() {
   }
 }
 
-function testInterval(data) {
-  console.log("testInterval: " + data);
-}
-
 // send funds to the contract
 function sendAmountToContract() {
   send_amount = document.getElementById("send_amount").value;
@@ -90,14 +115,20 @@ function sendAmountToContract() {
   if (send_amount != "") {
     var txn = web3.eth.sendTransaction({ from: web3.eth.coinbase, to: contract_addr, value: send_amount });
     console.log("sendAmountToContract txn: " + txn);
-    document.getElementById("status").innerHTML = "Waiting for transaction receipt..."; 
-    checkReceiptInterval = setInterval(function() { getTransactionReceipt(txn) }, 5000);
+    document.getElementById("status").innerHTML = "Waiting for transaction receipt...";
+
+    // week 5: extend web3 - see line 28-55 for function defenition
+    web3.eth.getTransactionReceiptMined(txn, 500);
+
+    // week 3: my own implementation to check transaction receipt - disabled and replaced with solution from week 5
+    //checkReceiptInterval = setInterval(function() { getTransactionReceipt(txn) }, 5000);
   }
   else {
     alert("You need to enter an amount to send in the ");
   }
 }
 
+// week 3: my own implementation to check transaction receipt
 function getTransactionReceipt(txn) {
   if (web3.eth.getTransactionReceipt(txn) == null) {
     console.log("Waiting for transaction receipt...");
