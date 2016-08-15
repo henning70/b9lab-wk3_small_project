@@ -23,5 +23,64 @@ Once the "Send funds to contract" button has been pressed, the entered amount wi
 
 The project could still use a lot of improvement, but does fulfill the requirements as outlined for week 3's Small Project.
 
+**Update:**
+
+Replaced own implementation of transaction receipt checking with solution provided in week 5's extending web3.
+
+*My solution:*
+```
+// line 124
+checkReceiptInterval = setInterval(function() { getTransactionReceipt(txn) }, 5000);
+
+// lines 132-144
+function getTransactionReceipt(txn) {
+  if (web3.eth.getTransactionReceipt(txn) == null) {
+    console.log("Waiting for transaction receipt...");
+    document.getElementById("status").innerHTML = "Waiting for transaction receipt...";
+  }
+  else {
+    console.log("Transaction receipt confirmed, sending funds to target accounts...");
+    setBalances();
+    document.getElementById("status").innerHTML = "Transaction receipt confirmed, sending funds to target accounts...";
+    clearInterval(checkReceiptInterval);
+    sendSplitAmount();
+  }
+}
+```
+
+*Week 5:*
+```
+// line 121
+web3.eth.getTransactionReceiptMined(txn, 500);
+
+// lines 28-55
+web3.eth.getTransactionReceiptMined = function (txn, interval) {
+    console.log("getTransactionReceiptMined");
+    var transactionReceiptAsync;
+    interval |= 500;
+    transactionReceiptAsync = function(txn, resolve, reject) {
+      try {
+        var receipt = web3.eth.getTransactionReceipt(txn);
+        if (receipt == null) {
+            setTimeout(function () {
+              transactionReceiptAsync(txn, resolve, reject);
+            }, interval);
+        } else {
+          console.log("Transaction receipt confirmed, sending funds to target accounts...");
+          setBalances();
+          document.getElementById("status").innerHTML = "Transaction receipt confirmed, sending funds to target accounts...";
+          resolve(receipt);
+        }
+      } catch(e) {
+          reject(e);
+      }
+    };
+
+    return new Promise(function (resolve, reject) {
+      transactionReceiptAsync(txn, resolve, reject);
+      sendSplitAmount();
+    });
+};
+```
 
 
